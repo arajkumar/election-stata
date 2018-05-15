@@ -1,3 +1,4 @@
+import argparse
 import sys
 import urllib2
 from bs4 import BeautifulSoup
@@ -47,8 +48,18 @@ def parse_constituency(url):
         return Constituency(url, constituency, done, [])
 
 def get_all_constituency():
-    for i in xrange(1, 222):
+    for i in xrange(1, 224):
         yield parse_constituency("http://eciresults.nic.in/ConstituencywiseS10{0}.htm?ac={0}".format(i))
+
+def print_all():
+    for c in get_all_constituency():
+        if len(c.contestents) > 2:
+            print ('%s %s %s %d %d' % (c.name, c.contestents[0].name, c.contestents[0].party, c.contestents[0].votes, c.contestents[0].votes - c.contestents[1].votes))
+
+def print_inprogress():
+    for c in get_all_constituency():
+        if not c.done and len(c.contestents) > 2:
+            print ('%s %s %s %d %d' % (c.name, c.contestents[0].name, c.contestents[0].party, c.contestents[0].votes, c.contestents[0].votes - c.contestents[1].votes))
 
 def print_winners():
     for c in get_all_constituency():
@@ -56,7 +67,18 @@ def print_winners():
             print ('%s %s %s %d %d' % (c.name, c.contestents[0].name, c.contestents[0].party, c.contestents[0].votes, c.contestents[0].votes - c.contestents[1].votes))
 
 def main():
-    print_winners()
+    parser = argparse.ArgumentParser(prog='parser', description='Scrap results from ECI official website, use grep to filter further', )
+    parser.add_argument('--winner', '-w', action='store_true', help='shows result declared constituencies with candidate info')
+    parser.add_argument('--inprogress', '-p', action='store_true', help='shows counting inprogress constituencies')
+    parser.add_argument('--all', '-a', action='store_true', help='show all')
+    args = parser.parse_args()
+    if args.winner:
+        print_winners()
+    elif args.inprogress:
+        print_inprogress()
+    else:
+        print_all()
+
     # print "["
     # for c in get_all_constituency():
     #     print (str(c) + ",")
